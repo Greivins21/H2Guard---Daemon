@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # NFQUEUE-Based HTTP/2 DoS Mitigation Prototype
 
 ## Project Overview
@@ -255,4 +254,3 @@ The original experiments were conducted using multiple attacker virtual machines
 ## Disclaimer
 
 This project is a research prototype designed for experimental evaluation of HTTP/2 attack mitigation techniques. It has not been tested for production deployment and should be used only in controlled environments.
->>>>>>> 76a6e2e8c52f72b7a279264eea566b2a22f157d3
