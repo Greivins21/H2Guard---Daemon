@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTTP/2 Rapid Reset Research</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <script src="../js/script.js" defer></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Security Research Prototype</p>
+        <h1>NFQUEUE-based HTTP/2 Rapid Reset Defense</h1>
+        <p>Building a kernel-level interception pipeline to observe HTTPS traffic, analyze HTTP/2 behavior, and prevent asymmetric DDoS attacks before they exhaust server resources.</p>
+        <div class="hero-buttons">
+          <a class="button-primary" href="#why">Why this matters</a>
+          <a class="button-secondary" href="#attack">Attack overview</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="card-glow">
+          <span class="signal-pill">Phase 3 Prototype</span>
+          <h3>Interception + Verdict</h3>
+          <p>HTTPS traffic on port 443 is intercepted by NFQUEUE, routed into a C daemon, and evaluated in user space to preserve normal server behavior while making the network stack observable.</p>
+          <p>This research is focused on creating a working interception pipeline rather than a full detector.</p>
+        </div>
+        <div class="card-glow">
+          <h3>Modern Protocol, New Risks</h3>
+          <p>HTTP/2 improves performance with multiplexed streams and a single connection, but that same efficiency can be abused by attackers seeking asymmetric resource exhaustion.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="image-strip">
+      <img src="../images/http2-stack.svg" alt="HTTP/2 protocol stack illustration" />
+      <img src="../images/attack-diagram.svg" alt="HTTP/2 Rapid Reset flow diagram" />
+    </section>
+
+    <main>
+      <section id="protocol" class="panel grey">
+        <h2>What is HTTP/2?</h2>
+        <p>HTTP/2 is the current standard for web transport. It replaces plain text request/response streams with a binary framing layer, enabling multiple requests to share one TCP/TLS connection.</p>
+        <p>Key advantages include:</p>
+        <ul>
+          <li>Multiplexing many streams concurrently over a single connection.</li>
+          <li>Header compression to reduce overhead and latency.</li>
+          <li>Stream prioritization and flow control for faster page delivery.</li>
+        </ul>
+        <p>These properties make HTTP/2 powerful for normal traffic, but also open the door to novel asymmetric attacks when a single client can create outsized server cost.</p>
+      </section>
+
+      <section id="attack" class="panel">
+        <h2>What is the DDoS Rapid Reset attack?</h2>
+        <p>The Rapid Reset attack targets HTTP/2 connections by creating many streams and then resetting them quickly. Each reset forces the server to clean up state and may trigger expensive connection or stream resource work.</p>
+        <p>Because HTTP/2 supports many active streams on one connection, attackers can generate high load with relatively little bandwidth, making the attack asymmetric.</p>
+        <ul>
+          <li>Attackers open numerous HTTP/2 streams.</li>
+          <li>They send many RST_STREAM frames or abort streams rapidly.</li>
+          <li>The server must allocate and free resources for each reset, which can exhaust memory and processing capacity.</li>
+        </ul>
+      </section>
+
+      <section id="demo" class="panel">
+        <h2>Attack flow demonstration</h2>
+        <p>Interact with the flow to see how a Rapid Reset attack escalates and how the mitigation pipeline reacts.</p>
+        <div class="flow-demo">
+          <div class="flow-card">
+            <span class="flow-step-label">Current step</span>
+            <h3 id="demo-step-title">Client opens HTTP/2 connection</h3>
+            <p id="demo-step-description">A malicious client starts a secure HTTP/2 session that can carry many parallel streams over a single TLS connection.</p>
+            <div class="demo-controls">
+              <button id="prev-step" type="button">Previous</button>
+              <button id="next-step" type="button">Next</button>
+              <button id="reset-step" type="button">Reset</button>
+            </div>
+          </div>
+          <div class="flow-graph" aria-hidden="true">
+            <div class="flow-node active" id="node-client">Client</div>
+            <div class="flow-link"></div>
+            <div class="flow-node" id="node-http2">HTTP/2 Connection</div>
+            <div class="flow-link"></div>
+            <div class="flow-node" id="node-server">Server</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="objective" class="panel grey">
+        <h2>What we are building</h2>
+        <p>This project is a research prototype that connects the Linux kernel packet queue to a user-space C program using NFQUEUE. It is designed to inspect HTTPS traffic intelligently without disrupting the web server.</p>
+        <p>Instead of building a complete detection engine yet, the current focus is on:</p>
+        <ul>
+          <li>Capturing HTTPS packets at the kernel level.</li>
+          <li>Passing them to a C daemon for analysis.</li>
+          <li>Returning a verdict that preserves normal traffic flow.</li>
+        </ul>
+        <p>That foundation will make it possible to layer real HTTP/2 attack detection later.</p>
+      </section>
+
+      <section id="why" class="panel">
+        <h2>Why this matters</h2>
+        <p>Modern server applications depend on HTTP/2 for performance, but the protocol also presents new attack surfaces. Rapid Reset and similar asymmetric DoS attacks can target the efficiency mechanisms themselves.</p>
+        <p>The reason for this research is to create a defensible interception layer that can later distinguish malicious HTTP/2 behavior from legitimate traffic, while allowing secure TLS connections to continue uninterrupted.</p>
+        <ul>
+          <li>Protect web servers from stealthy, state-exhausting attacks.</li>
+          <li>Retain compatibility with normal HTTPS application traffic.</li>
+          <li>Provide a realistic prototype for future HTTP/2 anomaly detection.</li>
+        </ul>
+      </section>
+
+      <div class="cta-banner">
+        <div>
+          <h2>Research-ready, visually clear, and technically grounded.</h2>
+          <p>Use this site as a landing page for the prototype: it explains the protocol, the threat, and the design objective in a crisp, research-oriented style.</p>
+        </div>
+        <div>
+          <a class="button-primary" href="#protocol">Explore the protocol</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footnote">
+      <div>NFQUEUE-based DoS mitigation prototype</div>
+      <div>Designed for HTTP/2 research on Linux with a blue/black theme.</div>
+    </footer>
+  </div>
+</body>
+</html>
